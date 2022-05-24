@@ -1,0 +1,266 @@
+<!doctype html>
+<meta charset="utf-8">
+<html>
+	<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-146742162-1"></script>
+		<script>
+		  window.dataLayer = window.dataLayer || [];
+		  function gtag(){dataLayer.push(arguments);}
+		  gtag('js', new Date());
+		
+		  gtag('config', 'UA-146742162-1');
+		</script>
+		<title>
+			Mandelbrot Sets
+		</title>
+		
+		<style>
+body{ 
+
+font-family: 'Helvetica';
+font-size: 15px;
+color: #000; 
+letter-spacing: 1px;
+background-color: #F5F5F5;
+
+}
+
+h1{
+	font-size: 80px;
+}
+h3{
+	font-size: 30px;
+}
+
+button{
+	background-color: #B9B9B9;
+	box-shadow: none;
+	border:none;
+	color: #272727;
+	font-family: "Helvetica";
+	font-weight: 600;
+	padding: 3px 5px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 14px;
+	margin: 4px 2px;
+	cursor: pointer;
+	
+	-webkit-transition-duration: 0.4s;
+	transition-duration: 0.4s;
+}
+
+button:hover{
+	background-color: #94B7D8;
+}
+
+select{
+	background-color: transparent;
+	-webkit-transition-duration: 0.4s;
+	transition-duration: 0.4s;
+}
+select:hover{
+	background-color: #94B7D8;
+}
+#mandelbrot_container {
+	position: relative;
+}
+#julia_container {
+	position: relative;
+}
+#canvas{
+	position: absolute;
+	z-index: 0;
+}
+#overlay_canvas{
+	position: absolute;
+	z-index: 1;
+}
+#julia_viewer{
+	position: absolute;
+	bottom: 10;
+	right: 0;
+	border: 3px solid #272727;
+	z-index: 2;
+}
+#julia_overlay{
+	position: absolute;
+	bottom: 10;
+	right: 0;
+	border: 3px solid #272727;
+	z-index: 3;
+}
+a{
+	text-decoration: none;
+	-webkit-transition: 0.2s;
+	transition: color .2s;
+}
+a:link{
+	color: #4589CA;
+}
+a:visited{
+	color: #4589CA;
+}
+a:visited:hover{
+	color: #D2D2D2;
+}
+a:hover{
+	color:#D2D2D2;
+}
+
+.links{
+	font: 'Helvetica Light';
+	font-size: 30px;
+	font-weight: 100;
+}
+.footlinks{
+	font: 'Helvetica Light';
+	font-size: 25px;
+	font-weight: 100;
+}
+
+.textbox{
+	background-color: transparent;
+}
+.textbox:focus{
+	background-color: white;
+}
+
+		</style>
+		
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		
+		  		
+	</head>
+	
+	
+	<body id="pageBody">
+	
+	<h1>
+		Mandelbrot Sets
+	</h1>
+	<h3>
+		by Paul Tisch &copy; 2019
+	</h3>
+	<br>
+	<div id="foot">
+		<a href="webDesign.html" class="footlinks">Back to Web Design</a><br><br>
+		<a href="index.html" class="footlinks">Home</a>
+	</div>
+	<br>
+
+<!-- 	<button onclick="nightMode()" name="button">Night mode on/off</button> -->
+	
+	<div id="slidecontainer">
+		<p>WASD for up/left/down/right, Z/X for zoom out/in.  
+		Click and drag for easy zoom/pan.  
+		H to show/hide controls.  
+		J to show/hide Julia Set viewer.  
+		R to reset parameters.
+		Using color and increasing Escape Count & Resolution will be slower.
+		</p>
+		<br>
+	  		<div id="mandelbrot_set_pick" style="display:inline-block">
+  			Mandelbrot Set:
+  			<select id="mandelbrot_selector" name="button" onchange="selectSet()">
+  				<option name="whichSet" value="deg2" selected>z^2+c</option>
+  				<option name="whichSet" value="deg3"> z^3+c</option>
+  				<option name="whichSet" value="deg4"> z^4+c</option>
+  				<option name="whichSet" value="deg5"> z^5+c</option>
+  				<option name="whichSet" value="ship"> Burning Ship</option>
+  				<option name="whichSet" value="ship3"> Triple Ship</option>
+  				<option name="whichSet" value="ship4"> Quad Ship</option>
+  				<option name="whichSet" value="ship5"> Quint Ship</option>
+  				<option name="whichSet" value="invDiffx"> c/(1-z)</option>
+  				<option name="whichSet" value="invSumx"> c/(1+z)</option>
+			</select>
+		</div>
+		<br>
+  		<div id="zoom_pan" style="display:inline-block">
+  			X:
+  			<input class="textbox" type="text" name="button" id="Xtxt" value="0"> <button onclick=manualXY() name="button">Submit</button>
+  			<br>
+  			Y:
+  			<input class="textbox" type="text" name="button" id="Ytxt" value="0"> <button onclick=resetPan() name="button">Reset pan</button>
+  		
+  		<br>
+  		<br>
+  		
+  		Zoom:
+  			<input class="textbox" type="text" name="button" id="zoomtxt" value="1"> <button onclick=manualXY() name="button">Submit</button> <button onclick=resetZoom() name="button">Reset zoom</button>
+  		<br>
+  		Zoom rate:
+  			<input class="textbox" type="text" id="zoomrate" value="2.0"> <button onclick=setZoomRate()>Submit</button>
+  		</div>
+  		<br>
+  		Escape Count 2^n: n=<input class="textbox" type="number" name="button" id="usrCnt" value="8" min="1" max="13">
+  		 + <input type="number" class="textbox" name="button" id="usrCntAdd" value="1" min="-1" max="5">
+  		Color cycle rate: <input class="textbox" type="number" name="button" id="cntMlt" value="1" min="1" max="100"> <button onclick=customCount() name="button">Submit</button>
+  		<br>
+  		<br>
+  		<button type="button" name="button" onclick=reset()>Reset all</button>
+		<br> 
+		<br>
+  		<select id="colorselect" name="button" onchange=colorselect()>
+  			<option value="bw">Grayscale</option>
+  			<option value="bwinv">Inverted Grayscale</option>
+  			<option value="red">Red</option>
+  			<option value="green">Green</option>
+  			<option value="blue">Blue</option>
+  			<option value="yellow">Yellow</option>
+  			<option value="icy">Icy</option>
+  			<option value="redblue">Red/Blue</option>
+  			<option value="rainbow">Rainbow</option>
+  			<option value="custom">Custom</option>
+  		</select>
+		<div id="customcolors" style=display:none>
+  		<form id=rgb>
+  		R: <input class="textbox" type="number" name="button" id="R" value="0" min="0" max="255">
+  			<select id=Rsign>
+  				<option value=p>+</option>
+  				<option value=m selected>-</option>
+  			</select>
+  		G: <input class="textbox" type="number" name="button" id="G" value="50" min="0" max="255">
+  			<select id=Gsign>
+  				<option value=p>+</option>
+  				<option value=m>-</option>
+  			</select>
+  		B: <input class="textbox" type="number" name="button" id="B" value="100" min="0" max="255">
+  			<select id=Bsign>
+  				<option value=p>+</option>
+  				<option value=m>-</option>
+  			</select>
+  		</form>
+  		<button onclick=customColors() name="button">Submit</button>
+  		</div>
+		<br>
+		<br>
+		<button onclick="saveimg()" name="button">Save Image</button>
+		<select id="reso" name="button" onchange=resochange()>
+			<option value="800" selected>800x600</option>
+			<option value="1200">1200x900</option>
+			<option value="1600">1600x1200</option>
+			<option value="2400">2400x1800</option>
+		</select>
+
+	</div>
+	
+	
+	<div id="mandelbrot_container">
+		<canvas id="canvas" width=800 height=600></canvas>
+		<canvas id="overlay_canvas" width=800 height=600></canvas>
+	</div>
+	<div id="julia_container">
+		<canvas id="julia_viewer" width=400 height=300></canvas>
+		<canvas id="julia_overlay" width=400 height=300></canvas>
+	</div>
+
+	
+	<script src="mandelbrot.js"></script>
+	<br>
+	<br>
+
+	</body>
+</html>
